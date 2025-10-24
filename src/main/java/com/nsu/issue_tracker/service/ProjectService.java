@@ -1,6 +1,7 @@
 package com.nsu.issue_tracker.service;
 
 import com.nsu.issue_tracker.dto.CreatingProjectRequest;
+import com.nsu.issue_tracker.dto.UserProjectsResponse;
 import com.nsu.issue_tracker.model.Project;
 import com.nsu.issue_tracker.model.User;
 import com.nsu.issue_tracker.repository.ProjectRepository;
@@ -11,6 +12,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +50,17 @@ public class ProjectService {
         save(project);
     }
 
-    public Set<Project> getProjectsByUser(UUID userId) {
-        return userService.findById(userId).getProjects();
+    public Set<UserProjectsResponse> getProjectsByUser(UUID userId) {
+        return userService.findById(userId).getProjects()
+                .stream().map(p ->
+                        UserProjectsResponse.builder()
+                                .id(p.getId())
+                                .adminEmail(p.getAdmin().getEmail())
+                                .members(p.getMembers())
+                                .name(p.getName())
+                                .isAdmin(p.getAdmin().getId().equals(userId))
+                                .build()
+                ).collect(Collectors.toSet());
     }
 
 

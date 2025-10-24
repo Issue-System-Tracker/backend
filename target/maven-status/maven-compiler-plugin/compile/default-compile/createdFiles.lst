@@ -1,9 +1,11 @@
 com/nsu/issue_tracker/controller/SprintController.class
+com/nsu/issue_tracker/dto/UserProjectsResponse.class
 com/nsu/issue_tracker/authorization/security/JwtProperties.class
 com/nsu/issue_tracker/controller/ProjectController.class
 com/nsu/issue_tracker/model/Issue.class
 com/nsu/issue_tracker/model/Project.class
 com/nsu/issue_tracker/authorization/model/RevokedToken.class
+com/nsu/issue_tracker/dto/UserProjectsResponse$UserProjectsResponseBuilder.class
 com/nsu/issue_tracker/model/Project$ProjectBuilder.class
 com/nsu/issue_tracker/model/Sprint$SprintBuilder.class
 com/nsu/issue_tracker/model/IssueStatus.class

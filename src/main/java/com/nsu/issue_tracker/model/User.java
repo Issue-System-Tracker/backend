@@ -32,7 +32,7 @@ public class User {
     @Column(name = "role")
     private Set<UserRole> roles = new HashSet<>();
 
-    @ManyToMany(mappedBy = "members", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "members")
     private Set<Project> projects = new HashSet<>();
 
     public User(String password, String email, Set<UserRole> roles) {

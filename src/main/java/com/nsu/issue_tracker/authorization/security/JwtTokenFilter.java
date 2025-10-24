@@ -1,6 +1,7 @@
 package com.nsu.issue_tracker.authorization.security;
 
 import com.nsu.issue_tracker.authorization.service.JwtTokenService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,14 +24,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String token = extractToken(request);
+        try {
+            String token = extractToken(request);
 
-        if (token != null && jwtTokenService.validateToken(token)) {
-            Authentication auth = jwtTokenService.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (token != null && jwtTokenService.validateToken(token)) {
+                Authentication auth = jwtTokenService.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request) {

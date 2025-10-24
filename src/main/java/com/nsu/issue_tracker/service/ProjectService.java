@@ -57,7 +57,7 @@ public class ProjectService {
                         UserProjectsResponse.builder()
                                 .id(p.getId())
                                 .adminEmail(p.getAdmin().getEmail())
-                                .members(p.getMembers())
+                                .members(p.getMembers().stream().map(User::getEmail).toList())
                                 .name(p.getName())
                                 .isAdmin(p.getAdmin().getId().equals(userId))
                                 .build()

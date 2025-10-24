@@ -1,10 +1,7 @@
 package com.nsu.issue_tracker.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +9,8 @@ import java.util.Set;
 
 @Entity
 @Data
+@ToString(exclude = {"members", "admin"})
+@EqualsAndHashCode(exclude = {"members", "admin"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,7 +24,7 @@ public class Project {
     @ManyToOne
     private User admin;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(
             name = "project_members",
             joinColumns = @JoinColumn(name = "project_id"),

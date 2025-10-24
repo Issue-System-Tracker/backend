@@ -25,6 +25,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .name(request.name())
                 .admin(userService.getReferenceById(userId))
+                .members(new HashSet<>())
                 .build();
 
         User user = userService.findById(userId);

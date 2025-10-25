@@ -1,6 +1,6 @@
 package com.nsu.issue_tracker.service;
 
-import com.nsu.issue_tracker.dto.SprintRequest;
+import com.nsu.issue_tracker.dto.SprintData;
 import com.nsu.issue_tracker.model.Project;
 import com.nsu.issue_tracker.model.Sprint;
 import com.nsu.issue_tracker.model.User;
@@ -21,7 +21,7 @@ public class SprintService {
     private final ProjectService projectService;
     private final UserService userService;
 
-    public void createSprint(Long projectId, UUID userId, SprintRequest request) {
+    public void createSprint(Long projectId, UUID userId, SprintData request) {
         Project project = projectService.findById(projectId);
 
         if (!project.getAdmin().getId().equals(userId))
@@ -38,7 +38,7 @@ public class SprintService {
     }
 
     public void editSprint(
-            Long projectId, UUID userId, SprintRequest request, Long sprintId) {
+            Long projectId, UUID userId, SprintData request, Long sprintId) {
         Project project = projectService.findById(projectId);
 
         if (!project.getAdmin().getId().equals(userId))
@@ -54,11 +54,17 @@ public class SprintService {
         );
     }
 
-    public List<Sprint> findAll(Long projectId) {
+    public List<SprintData> findAll(Long projectId) {
         return sprintRepository
                 .findAllByEndDateAfterAndProject(
                         LocalDate.now(ZoneOffset.UTC),
-                        projectService.getReference(projectId));
+                        projectService.getReference(projectId))
+                .stream().map(s -> SprintData.builder()
+                        .startDate(s.getStartDate())
+                        .endDate(s.getEndDate())
+                        .name(s.getName())
+                        .build())
+                .toList();
     }
 
     public void save(Sprint sprint) {

@@ -70,6 +70,16 @@ public class ProjectService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
+    public void delete(Long projectId, UUID userId) {
+        Project project = findById(projectId);
+
+
+        if (!project.getAdmin().getId().equals(userId))
+            throw new AccessDeniedException("Only admin of project can delete project");
+
+        projectRepository.delete(getReference(projectId));
+    }
+
     public void save(Project project) {
         projectRepository.save(project);
     }

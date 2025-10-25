@@ -64,7 +64,7 @@ public class IssueController {
                 projectId);
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public void deleteIssue(
             @PathVariable Long projectId,
             @PathVariable Long id,

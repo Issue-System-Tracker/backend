@@ -1,7 +1,7 @@
 package com.nsu.issue_tracker.controller;
 
 import com.nsu.issue_tracker.authorization.security.CustomUserDetails;
-import com.nsu.issue_tracker.dto.SprintRequest;
+import com.nsu.issue_tracker.dto.SprintData;
 import com.nsu.issue_tracker.service.SprintService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class SprintController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createSprint(
             @PathVariable Long projectId,
-            @RequestBody @Valid SprintRequest request,
+            @RequestBody @Valid SprintData request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         sprintService.createSprint(
                 projectId,
@@ -34,7 +34,7 @@ public class SprintController {
     public void editSprint(
             @PathVariable Long projectId,
             @PathVariable Long id,
-            @RequestBody @Valid SprintRequest request,
+            @RequestBody @Valid SprintData request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         sprintService.editSprint(
                 projectId,

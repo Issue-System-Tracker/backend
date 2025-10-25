@@ -24,7 +24,8 @@
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/EditingIssueRequest.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/FilteringIssuesRequest.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/IssueChangesResponse.java
-/Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/SprintRequest.java
+/Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/IssueResponse.java
+/Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/SprintData.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/dto/UserProjectsResponse.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/exception/GlobalExceptionHandler.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/model/Issue.java
@@ -46,3 +47,4 @@
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/service/ProjectService.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/service/SprintService.java
 /Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/service/UserService.java
+/Users/miki/Desktop/issue-tracker/src/main/java/com/nsu/issue_tracker/service/mappers/IssueToIssueDtoMapper.java

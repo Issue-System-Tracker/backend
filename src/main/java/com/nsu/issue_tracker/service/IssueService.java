@@ -3,11 +3,13 @@ package com.nsu.issue_tracker.service;
 import com.nsu.issue_tracker.dto.CreatingIssueRequest;
 import com.nsu.issue_tracker.dto.EditingIssueRequest;
 import com.nsu.issue_tracker.dto.FilteringIssuesRequest;
+import com.nsu.issue_tracker.dto.IssueResponse;
 import com.nsu.issue_tracker.model.Issue;
 import com.nsu.issue_tracker.model.IssueStatus;
 import com.nsu.issue_tracker.model.Project;
 import com.nsu.issue_tracker.model.User;
 import com.nsu.issue_tracker.repository.IssueRepository;
+import com.nsu.issue_tracker.service.mappers.IssueToIssueDtoMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class IssueService {
     private final SprintService sprintService;
     private final IssueHistoryService issueHistoryService;
     private final ProjectService projectService;
+    private final IssueToIssueDtoMapper issueDtoMapper;
 
     public void createIssue(
             CreatingIssueRequest request, Long projectId, UUID authorUUID) {
@@ -54,7 +57,7 @@ public class IssueService {
         );
     }
 
-    public List<Issue> filterIssues(Long projectId, FilteringIssuesRequest request) {
+    public List<IssueResponse> filterIssues(Long projectId, FilteringIssuesRequest request) {
         User assignee = request.assigneeEmail() != null
                 ? userService.findByEmail(request.assigneeEmail())
                 : null;
@@ -64,7 +67,7 @@ public class IssueService {
                 request.status(),
                 assignee,
                 request.sprintId()
-        );
+        ).stream().map(issueDtoMapper).toList();
     }
 
     public void deleteIssue(Long projectId, Long issueId, UUID userUUID) {
@@ -234,16 +237,18 @@ public class IssueService {
         save(issue);
     }
 
-    public List<Issue> getAllIssues(Long projectId) {
+    public List<IssueResponse> getAllIssues(Long projectId) {
         return issueRepository
-                .findAllByProject(projectService.getReference(projectId));
+                .findAllByProject(projectService.getReference(projectId))
+                .stream().map(issueDtoMapper).toList();
     }
 
-    public List<Issue> getIssuesBySprint(Long projectId, Long sprintId) {
+    public List<IssueResponse> getIssuesBySprint(Long projectId, Long sprintId) {
         return issueRepository
                 .findAllBySprintAndProject(
                         sprintService.getReference(sprintId),
-                        projectService.getReference(projectId));
+                        projectService.getReference(projectId))
+                .stream().map(issueDtoMapper).toList();
     }
 
     public Issue findById(Long id) {

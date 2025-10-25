@@ -50,4 +50,12 @@ public class ProjectController {
                 .getProjectsByUser(UUID.fromString(userDetails.getUserId())));
     }
 
+    @DeleteMapping("/{projectId}")
+    public void deleteProject(
+            @PathVariable Long projectId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        projectService
+                .delete(projectId, UUID.fromString(userDetails.getUserId()));
+    }
+
 }

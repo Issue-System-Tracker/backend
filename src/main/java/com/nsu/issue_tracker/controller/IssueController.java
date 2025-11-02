@@ -116,8 +116,8 @@ public class IssueController {
 
     @GetMapping("/{id}/history")
     public ResponseEntity<?> getIssueHistory(
-            @PathVariable Long issueId) {
+            @PathVariable Long id) {
         return ResponseEntity.ok().body(
-                issueHistoryService.getChangesByIssue(issueId));
+                issueHistoryService.getChangesByIssue(id));
     }
 }

@@ -93,7 +93,10 @@ public class IssueService {
             Long issueId,
             UUID userId,
             Long projectId) {
-        User assignee = userService.findByEmail(request.getAssigneeEmail());
+
+        User assignee = null;
+        if (request.getAssigneeEmail() != null)
+            assignee = userService.findByEmail(request.getAssigneeEmail());
 
         User user = userService.findById(userId);
 

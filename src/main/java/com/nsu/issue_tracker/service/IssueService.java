@@ -45,6 +45,7 @@ public class IssueService {
                 Issue.builder()
                         .project(project)
                         .author(author)
+                        .type(request.type())
                         .title(request.title())
                         .description(request.description())
                         .status(IssueStatus.OPEN)
@@ -131,6 +132,7 @@ public class IssueService {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .sprint(sprintService.getReference(request.getSprintId()))
+                .project(project)
                 .build());
     }
 

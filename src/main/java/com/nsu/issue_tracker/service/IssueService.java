@@ -36,6 +36,10 @@ public class IssueService {
 
         User author = userService.findById(authorUUID);
 
+        User assignee = request.assigneeEmail() != null
+                ? userService.findByEmail(request.assigneeEmail())
+                : null;
+
         if (!project.getMembers().contains(author))
             throw new AccessDeniedException
                     ("You can create issues only if you are member of the project");
@@ -47,6 +51,7 @@ public class IssueService {
                         .author(author)
                         .type(request.type())
                         .title(request.title())
+                        .assignee(assignee)
                         .description(request.description())
                         .status(IssueStatus.OPEN)
                         .priority(request.priority())

@@ -21,6 +21,8 @@ public record CreatingIssueRequest(
         @NotNull
         IssueType type,
 
+        String assigneeEmail,
+
         Priority priority,
 
         LocalDate startDate,

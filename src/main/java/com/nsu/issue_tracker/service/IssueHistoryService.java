@@ -72,4 +72,9 @@ public class IssueHistoryService {
     public void save(IssueHistory issueHistory) {
         issueHistoryRepository.save(issueHistory);
     }
+
+    @Transactional
+    public void deleteByIssue(Issue issue) {
+        issueHistoryRepository.deleteByIssue(issue);
+    }
 }

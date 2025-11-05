@@ -76,6 +76,7 @@ public class IssueService {
         ).stream().map(issueDtoMapper).toList();
     }
 
+    @Transactional
     public void deleteIssue(Long projectId, Long issueId, UUID userUUID) {
         Issue issue = findById(issueId);
 
@@ -89,6 +90,9 @@ public class IssueService {
                 || issue.getAuthor().getId().equals(userUUID)))
             throw new AccessDeniedException
                     ("Only project's admin / issue's author can delete issue");
+
+        // Удаляем связанную историю изменений перед удалением issue
+        issueHistoryService.deleteByIssue(issue);
 
         issueRepository.delete(issue);
     }

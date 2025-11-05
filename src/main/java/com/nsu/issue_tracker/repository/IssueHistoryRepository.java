@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface IssueHistoryRepository extends JpaRepository<IssueHistory, Long> {
     List<IssueHistory> findAllByIssue(Issue issue);
+    void deleteByIssue(Issue issue);
 }

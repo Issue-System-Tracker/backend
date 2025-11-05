@@ -25,4 +25,6 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
 
     List<Issue> findAllByProject(Project project);
 
+    List<Issue> findAllByProjectAndAssignee(Project project, User assignee);
+
 }

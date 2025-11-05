@@ -41,6 +41,17 @@ public class ProjectController {
                 UUID.fromString(userDetails.getUserId()));
     }
 
+    @DeleteMapping("/{id}/member")
+    public void removeMember(
+            @PathVariable Long id,
+            @RequestParam @Email String memberEmail,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        projectService.removeMemberFromProject(
+                memberEmail,
+                id,
+                UUID.fromString(userDetails.getUserId()));
+    }
+
     @GetMapping
     public ResponseEntity<?> getProjectsByUser(
             @AuthenticationPrincipal CustomUserDetails userDetails

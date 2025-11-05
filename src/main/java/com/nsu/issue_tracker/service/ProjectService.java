@@ -22,21 +22,22 @@ public class ProjectService {
 
     @Transactional
     public void createProject(CreatingProjectRequest request, UUID userId) {
+        User user = userService.findById(userId);
+        
         Project project = Project.builder()
                 .name(request.name())
-                .admin(userService.getReferenceById(userId))
+                .admin(user)
                 .members(new HashSet<>())
                 .build();
 
-        User user = userService.findById(userId);
-
+        // Обновляем обе стороны ManyToMany связи
+        project.getMembers().add(user);
         user.getProjects().add(project);
-
-        project.getMembers().add(userService.getReferenceById(userId));
 
         save(project);
     }
 
+    @Transactional
     public void addMemberToProject(String email, Long projectId, UUID adminId) {
         Project project = findById(projectId);
 
@@ -46,7 +47,36 @@ public class ProjectService {
 
         User member = userService.findByEmail(email);
 
+        // Обновляем обе стороны ManyToMany связи
         project.getMembers().add(member);
+        member.getProjects().add(project);
+
+        save(project);
+    }
+
+    @Transactional
+    public void removeMemberFromProject(String email, Long projectId, UUID adminId) {
+        Project project = findById(projectId);
+
+        if (!project.getAdmin().getId().equals(adminId))
+            throw new AccessDeniedException
+                    ("Only project's admin can remove members");
+
+        User member = userService.findByEmail(email);
+
+        // Проверяем, что удаляемый пользователь не является админом проекта
+        if (project.getAdmin().getId().equals(member.getId()))
+            throw new AccessDeniedException
+                    ("Cannot remove project admin from project");
+
+        // Проверяем, что пользователь является участником проекта
+        if (!project.getMembers().contains(member))
+            throw new EntityNotFoundException
+                    ("User is not a member of this project");
+
+        // Обновляем обе стороны ManyToMany связи
+        project.getMembers().remove(member);
+        member.getProjects().remove(project);
 
         save(project);
     }

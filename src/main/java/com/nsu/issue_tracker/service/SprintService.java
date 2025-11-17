@@ -60,6 +60,7 @@ public class SprintService {
                         LocalDate.now(ZoneOffset.UTC),
                         projectService.getReference(projectId))
                 .stream().map(s -> SprintData.builder()
+                        .spintId(s.getId())
                         .startDate(s.getStartDate())
                         .endDate(s.getEndDate())
                         .name(s.getName())

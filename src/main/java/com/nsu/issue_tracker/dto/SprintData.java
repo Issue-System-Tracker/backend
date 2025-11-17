@@ -12,7 +12,6 @@ public record SprintData(
         @NotBlank
         String name,
 
-        @NotNull
         Long sprintId,
 
         @NotNull

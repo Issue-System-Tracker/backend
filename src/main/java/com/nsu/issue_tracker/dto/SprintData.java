@@ -13,7 +13,7 @@ public record SprintData(
         String name,
 
         @NotNull
-        Long spintId,
+        Long sprintId,
 
         @NotNull
         LocalDate startDate,

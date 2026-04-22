@@ -8,6 +8,7 @@ import com.nsu.issue_tracker.model.Issue;
 import com.nsu.issue_tracker.model.IssueStatus;
 import com.nsu.issue_tracker.model.Project;
 import com.nsu.issue_tracker.model.User;
+import com.nsu.issue_tracker.realtime.BoardRealtimeBroadcaster;
 import com.nsu.issue_tracker.repository.IssueRepository;
 import com.nsu.issue_tracker.service.mappers.IssueToIssueDtoMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +16,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,7 @@ public class IssueService {
     private final IssueHistoryService issueHistoryService;
     private final ProjectService projectService;
     private final IssueToIssueDtoMapper issueDtoMapper;
+    private final BoardRealtimeBroadcaster boardRealtimeBroadcaster;
 
     public void createIssue(
             CreatingIssueRequest request, Long projectId, UUID authorUUID) {
@@ -45,7 +49,7 @@ public class IssueService {
                     ("You can create issues only if you are member of the project");
 
 
-        save(
+        Issue createdIssue = save(
                 Issue.builder()
                         .project(project)
                         .author(author)
@@ -59,8 +63,12 @@ public class IssueService {
                         .endDate(request.endDate())
                         .sprint(sprintService.getReference(request.sprintId()))
                         .build()
-
         );
+        publishIssueCreatedAfterCommit(
+                createdIssue.getProject().getId(),
+                createdIssue.getId(),
+                createdIssue.getStatus(),
+                author.getEmail());
     }
 
     public List<IssueResponse> filterIssues(Long projectId, FilteringIssuesRequest request) {
@@ -128,8 +136,9 @@ public class IssueService {
             throw new AccessDeniedException("You cant refactor other people's issues");
 
         issueHistoryService.recordChanges(request, issue, user.getEmail());
+        boolean hasNonStatusChanges = hasNonStatusChanges(issue, request, assignee);
 
-        save(Issue.builder()
+        Issue updatedIssue = Issue.builder()
                 .id(issueId)
                 .title(request.getTitle())
                 .status(request.getStatus())
@@ -142,7 +151,24 @@ public class IssueService {
                 .endDate(request.getEndDate())
                 .sprint(sprintService.getReference(request.getSprintId()))
                 .project(project)
-                .build());
+                .build();
+        save(updatedIssue);
+
+        boolean statusChanged = !issue.getStatus().equals(updatedIssue.getStatus());
+        if (statusChanged) {
+            publishStatusChangedAfterCommit(
+                    updatedIssue.getProject().getId(),
+                    updatedIssue.getId(),
+                    updatedIssue.getStatus(),
+                    hasNonStatusChanges,
+                    user.getEmail());
+        } else if (hasNonStatusChanges) {
+            publishIssueUpdatedAfterCommit(
+                    updatedIssue.getProject().getId(),
+                    updatedIssue.getId(),
+                    updatedIssue.getStatus(),
+                    user.getEmail());
+        }
     }
 
     @Transactional
@@ -172,6 +198,8 @@ public class IssueService {
 
         issue.setStatus(IssueStatus.TESTING);
         save(issue);
+        publishStatusChangedAfterCommit(
+                issue.getProject().getId(), issue.getId(), issue.getStatus(), false, userEmail);
     }
 
     @Transactional
@@ -202,6 +230,8 @@ public class IssueService {
 
         issue.setStatus(IssueStatus.IN_PROGRESS);
         save(issue);
+        publishStatusChangedAfterCommit(
+                issue.getProject().getId(), issue.getId(), issue.getStatus(), false, userEmail);
     }
 
     @Transactional
@@ -225,6 +255,8 @@ public class IssueService {
 
         issue.setStatus(IssueStatus.DONE);
         save(issue);
+        publishStatusChangedAfterCommit(
+                issue.getProject().getId(), issue.getId(), issue.getStatus(), false, userEmail);
     }
 
     @Transactional
@@ -249,6 +281,8 @@ public class IssueService {
         issue.setStatus(IssueStatus.OPEN);
         issue.setAssignee(null);
         save(issue);
+        publishStatusChangedAfterCommit(
+                issue.getProject().getId(), issue.getId(), issue.getStatus(), false, userEmail);
     }
 
     public List<IssueResponse> getAllIssues(Long projectId) {
@@ -271,8 +305,8 @@ public class IssueService {
                         ("Issue with provided id does not exists"));
     }
 
-    public void save(Issue issue) {
-        issueRepository.save(issue);
+    public Issue save(Issue issue) {
+        return issueRepository.save(issue);
     }
 
     public Issue getReference(Long id) {
@@ -281,6 +315,78 @@ public class IssueService {
 
     private boolean isAdmin(Project project, User user) {
         return project.getAdmin().getId().equals(user.getId());
+    }
+
+    private void publishStatusChangedAfterCommit(Long projectId,
+                                                 Long issueId,
+                                                 IssueStatus status,
+                                                 boolean hasNonStatusChanges,
+                                                 String changedBy) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    boardRealtimeBroadcaster.publishIssueStatusChanged(
+                            projectId, issueId, status, hasNonStatusChanges, changedBy);
+                }
+            });
+            return;
+        }
+
+        boardRealtimeBroadcaster.publishIssueStatusChanged(
+                projectId, issueId, status, hasNonStatusChanges, changedBy);
+    }
+
+    private void publishIssueUpdatedAfterCommit(Long projectId,
+                                                Long issueId,
+                                                IssueStatus status,
+                                                String changedBy) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    boardRealtimeBroadcaster.publishIssueUpdated(
+                            projectId, issueId, status, changedBy);
+                }
+            });
+            return;
+        }
+
+        boardRealtimeBroadcaster.publishIssueUpdated(projectId, issueId, status, changedBy);
+    }
+
+    private void publishIssueCreatedAfterCommit(Long projectId,
+                                                Long issueId,
+                                                IssueStatus status,
+                                                String changedBy) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    boardRealtimeBroadcaster.publishIssueCreated(
+                            projectId, issueId, status, changedBy);
+                }
+            });
+            return;
+        }
+
+        boardRealtimeBroadcaster.publishIssueCreated(projectId, issueId, status, changedBy);
+    }
+
+    private boolean hasNonStatusChanges(Issue issue, EditingIssueRequest request, User assignee) {
+        if (!issue.getTitle().equals(request.getTitle())) return true;
+        if (!issue.getDescription().equals(request.getDescription())) return true;
+        if (!issue.getType().equals(request.getType())) return true;
+        if (!issue.getPriority().equals(request.getPriority())) return true;
+        if (!java.util.Objects.equals(issue.getStartDate(), request.getStartDate())) return true;
+        if (!java.util.Objects.equals(issue.getEndDate(), request.getEndDate())) return true;
+
+        Long issueSprintId = issue.getSprint() != null ? issue.getSprint().getId() : null;
+        if (!java.util.Objects.equals(issueSprintId, request.getSprintId())) return true;
+
+        String currentAssigneeEmail = issue.getAssignee() != null ? issue.getAssignee().getEmail() : null;
+        String newAssigneeEmail = assignee != null ? assignee.getEmail() : null;
+        return !java.util.Objects.equals(currentAssigneeEmail, newAssigneeEmail);
     }
 
 }

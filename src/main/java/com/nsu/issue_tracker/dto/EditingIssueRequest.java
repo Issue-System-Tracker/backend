@@ -17,7 +17,7 @@ public class EditingIssueRequest {
     private String title;
 
     @NotBlank
-    @Size(max = 100_000)
+    @Size(max = 1_048_576)
     private String description;
 
     @NotNull

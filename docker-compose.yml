@@ -9,10 +9,12 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION_MIN=${JWT_ACCESS_EXPIRATION_MIN}
       - JWT_REFRESH_EXPIRATION_DAYS=${JWT_REFRESH_EXPIRATION_DAYS}
+      - APP_UPLOAD_DIR=/app/data/uploads
     ports:
       - "8080:8080"
     volumes:
       - app-logs:/app/logs
+      - app-uploads:/app/data/uploads
     depends_on:
       - postgres
 
@@ -31,4 +33,5 @@ services:
 
 volumes:
   app-logs:
+  app-uploads:
   postgres-data:

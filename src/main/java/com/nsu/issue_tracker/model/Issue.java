@@ -1,7 +1,14 @@
 package com.nsu.issue_tracker.model;
 
 import com.nsu.issue_tracker.dto.CreatingIssueRequest;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +28,8 @@ public class Issue {
 
     private String title;
 
+    /** HTML rich text (форматирование, таблицы); без загрузки файлов изображений — отдельно. */
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)
